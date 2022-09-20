@@ -1,5 +1,5 @@
 public class Memory {
-    short[] memory ;
+    short[] memory;
 
     public Memory() {
         memory = new short[65536];

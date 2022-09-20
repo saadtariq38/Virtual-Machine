@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 public class VM extends OS {
     
-    int[] stack = new int[25];
+    short[] stack = new short[25];
     short[] instructions;
     String filename;
 
