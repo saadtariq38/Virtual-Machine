@@ -57,19 +57,32 @@ public class VM extends OS {
        
     }
 
+    public void getInstruction() {
+        //switch case statement goes here. This is called in fetch with the hex value of IR "irHexValue" to find the instruction
+    }
+
     public void fetch(short base) {
         short codeBase = regStorage.getSpecialRegister(1);  //getting the value of base from code base register
         regStorage.setSpecialRegister(3, codeBase); //setting value of code counter aka program counter as code base value
 
         short pc = regStorage.getSpecialRegister(3);
 
-        
+        short ir; //instruction register
         while(pc <= regStorage.getSpecialRegister(2)) { //condition to only allow pc to increment till where the last instruction num sits in memory
-            // putting value from memory into instruction register goes here
+            ir = memory.get(pc);    //get value from memory into instruction register
+            pc++;   //increment program counter
+
+            String irHexValue = Integer.toHexString(ir & 0xffff);
+            System.out.println(irHexValue);
+
+
+
         }
 
         
     }
+
+    
 
    
     public void cpu() {
