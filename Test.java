@@ -13,7 +13,7 @@ public class Test{
              */
        
 
-        VM vm = new VM("p1.txt", (short) 0);
+        VM vm = new VM("p0.txt", (short) 0);
         vm.cpu();
         
     }
