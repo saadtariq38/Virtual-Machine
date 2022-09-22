@@ -59,6 +59,34 @@ public class VM extends OS {
         
     }
 
+    public void flagRegister(int num) {
+        short flag = regStorage.getSpecialRegister(9); //getting value of flag register at index 9 of spr
+        if(num == 0) {
+            flag = (short) (flag | 2); //update zero flag bit to 1
+            
+        } else {
+            flag = (short) (flag & 13); //update zero flag bit to 0
+            
+        }
+        regStorage.setSpecialRegister(9, flag); //sets the new value of flag register with updated bit
+
+
+
+        if (num > 32767 && num < 65536) {
+            flag = (short) (flag | 4); //update flag sign bit to 1
+        } else {
+            flag = (short) (flag & 11); //update flag sign bit to 0
+        }
+        regStorage.setSpecialRegister(9, flag); //sets the new value of flag register with updated bit
+
+        if(num > 65535) {
+            flag = (short) (flag | 8); //update flag overflow bit to 1
+        } else {
+            flag = (short) (flag & 7); //update flag overflow bit to 0
+        }
+        regStorage.setSpecialRegister(9, flag); //sets the new value of flag register with updated bit
+    }
+
     public void getInstruction(String IrHexVal, short pc) { //Sare pc wali values ko ek ek kam increment karna bcs ek increment fucn call sai pehle ho chuka hai
 
         //ALL PC VALS ARE +1 ALR BCS WE INCREMENTED BEFORE FUNCTION CALL IN FETCHG FUNC
@@ -66,24 +94,31 @@ public class VM extends OS {
             //Register-Register Instructions
 
             case Instructions.MOV:
-               break; 
+                MOV(pc);
+                break; 
             case Instructions.ADD:
+                ADD(pc);
                 break;
             case Instructions.SUB:
+                SUB(pc);
                 break;
             case Instructions.MUL:
+                MUL(pc);
+                break;
+            case Instructions.DIV:
+                DIV(pc);
                 break;
             case Instructions.AND:
+                AND(pc);
                 break;
             case Instructions.OR:
+                OR(pc);
                 break;
 
              //Register Final-Immediate Instructions
 
             case Instructions.MOVI:
-                short R2 = regStorage.getRegister(pc+1); //gets value from gpr at index pc+1
-                regStorage.setRegister(pc, R2); //stores value in gpr in index pc
-                regStorage.setSpecialRegister(3, (short)(pc+2));
+                MOVI(pc);
                 break;  
             case Instructions.ADDI:
                 break;
@@ -146,38 +181,175 @@ public class VM extends OS {
                 break;
             case Instructions.END:   
                 break;
-            
+            default:
+                break;
         }
     }
 
+    public void MOV(short pc) {
+        short R2 = regStorage.getRegister(pc+1); //gets value from gpr at index pc+1
+        regStorage.setRegister(pc, R2); //stores value in gpr in index pc
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void ADD(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
+        int R3 = (R1 + R2);
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+
+    }
+
+    public void SUB(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
+        int R3 = R1-R2;
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void MUL(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
+        int R3 = R1*R2;
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void DIV(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
+        int R3 = R1/R2;
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void AND(short pc) {
+        int R1 = regStorage.getRegister(pc);
+        int R2 = regStorage.getRegister(pc+1);
+        int R3 = R1 & R2;
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void OR(short pc) {
+        int R1 = regStorage.getRegister(pc);
+        int R2 = regStorage.getRegister(pc+1);
+        int R3 = R1 | R2;
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void MOVI(short pc) {
+        int val = memory.get(pc+1); //getting immediate value from memory
+        regStorage.setRegister(pc, (short) val);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+
+       
+    }
+
+    public void ADDI(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int value = memory.get(pc+1);
+        int R3 = (R1 + value);
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void SUBI(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int value = memory.get(pc+1);
+        int R3 = (R1 - value);
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void MULI(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int value = memory.get(pc+1);
+        int R3 = (R1 * value);
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void DIVI(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int value = memory.get(pc+1);
+        int R3 = (R1 / value);
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void ANDI(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int value = memory.get(pc+1);
+        int R3 = (R1 & value);
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+    public void ORI(short pc) {
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
+        int value = memory.get(pc+1);
+        int R3 = (R1 | value);
+        flagRegister(R3);
+        regStorage.setRegister(pc, (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+2));
+    }
+
+
+
+
+
+
     public void fetch(short base) {
         short codeBase = regStorage.getSpecialRegister(1);  //getting the value of base from code base register
-        System.out.println("code base" + codeBase);
+       
         regStorage.setSpecialRegister(3, codeBase); //setting value of code counter aka program counter as code base value
         
         short pc = regStorage.getSpecialRegister(3);
 
         short ir; //instruction register
-       /*  while(pc <= regStorage.getSpecialRegister(2)) { //condition to only allow pc to increment till where the last instruction num sits in memory
+        
+        
+        ir = memory.get(pc);    //get value from memory into instruction register
         
         
         
-       }
+         
+        while(ir != (short)Integer.parseInt(Instructions.END, 16)) { //condition to only allow pc to increment till where the last instruction num sits in memory
        
-       */
-      ir = memory.get(pc);    //get value from memory into instruction register
-      
-      pc++;   //increment program counter
-      regStorage.setSpecialRegister(3, pc); //updating code counter everytime pc increments
        
+            
+            pc++;   //increment program counter
+            regStorage.setSpecialRegister(3, pc); //updating code counter everytime pc increments
+             
+              
+            
+            String irHexValue = Integer.toHexString(ir & 0xffff); // converting value in IR from int to hex
+            
+            
+            
+            getInstruction(irHexValue, pc); //this calls switch case statement and matches op code and executes instruction accordingly
+
+            pc = regStorage.getSpecialRegister(3);
+            
+            ir = memory.get(pc);
+        }
+         
         
-      
-      String irHexValue = Integer.toHexString(ir & 0xffff); // converting value in IR from int to hex
-      
-
-      
-      getInstruction(irHexValue, pc); //this calls switch case statement and matches op code and executes instruction accordingly
-
       
     }
 
