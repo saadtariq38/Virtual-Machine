@@ -24,4 +24,18 @@ public class RegisterStorage {
         registers[index] = value;
     }
 
+
+    public void toStringmeowww () {
+        for(int i =0; i < 16;i++) {
+            System.out.println("General Purpose Regsiter " + i + ": " + registers[i]);
+        }
+
+        System.out.println();
+
+        for(int i =0; i < 16;i++) {
+            System.out.println("Special Purpose Regsiter " + i + ": " + specialRegisters[i]);
+        }
+
+    }
+
 }

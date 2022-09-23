@@ -3,6 +3,8 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 
+
+
 public class VM extends OS {
     
     short[] stack = new short[25];
@@ -87,7 +89,27 @@ public class VM extends OS {
         regStorage.setSpecialRegister(9, flag); //sets the new value of flag register with updated bit
     }
 
+    public int hexToDecimal(String in) {
+        //System.out.println( "inserted values " + in);
+      //  System.out.println();
+      System.out.println("len="+in.length());
+        int x=0;
+        for (int i=0;i<in.length();i++){
+            if ((int)(in.charAt(i))<=57){
+                x=x+((int)(in.charAt(i))-48)*(int)Math.pow(16,(in.length()-i-1));
+            }
+            else {
+                x=x+((int)(in.charAt(i))-55)*(int)Math.pow(16,(in.length()-i-1));
+            }
+            System.out.println("outputted values " + x);
+        }
+        // System.out.println(Integer.parseInt(x));
+        return x;
+    }
+
     public void getInstruction(String IrHexVal, short pc) { //Sare pc wali values ko ek ek kam increment karna bcs ek increment fucn call sai pehle ho chuka hai
+
+        System.out.println("program counter: " + regStorage.getSpecialRegister(3));
 
         //ALL PC VALS ARE +1 ALR BCS WE INCREMENTED BEFORE FUNCTION CALL IN FETCHG FUNC
         switch(IrHexVal) {
@@ -188,7 +210,7 @@ public class VM extends OS {
 
     public void MOV(short pc) {
         short R2 = regStorage.getRegister(pc+1); //gets value from gpr at index pc+1
-        regStorage.setRegister(pc, R2); //stores value in gpr in index pc
+        regStorage.setRegister(memory.get(pc), R2); //stores value in gpr in index pc
         regStorage.setSpecialRegister(3, (short)(pc+2));
     }
 
@@ -248,10 +270,29 @@ public class VM extends OS {
     }
 
     public void MOVI(short pc) {
-        int val = memory.get(pc+1); //getting immediate value from memory
-        regStorage.setRegister(pc, (short) val);
-        regStorage.setSpecialRegister(3, (short)(pc+2));
+       
 
+        String valPat1 = Integer.toHexString(memory.get(pc+1) & 0xffff);  //getting immediate value from memory
+        String valPat2 = Integer.toHexString(memory.get(pc+2) & 0xffff);    //getting second byte of immediate val from memory
+
+       
+        
+        // int x=hexToDecimal(valPat1);
+        // int y=hexToDecimal(valPat2);
+        String concat = valPat1 + valPat2;
+        concat = concat.toUpperCase();
+        
+
+        int ans = hexToDecimal(concat);
+        
+
+      //  String concat=((Integer)(x)).toString()+((Integer)(y)).toString();
+        //System.out.println("val1="+valPa"t1+"val2="+valPat2);
+        //System.out.println("x="+x+" y="+y);
+        regStorage.setRegister(memory.get(pc), (short)(ans));
+        regStorage.setSpecialRegister(3, (short)(pc+3));
+
+        
        
     }
 
@@ -325,29 +366,35 @@ public class VM extends OS {
         
         
         ir = memory.get(pc);    //get value from memory into instruction register
+        System.out.println(ir);
         
-        
-        
+        System.out.println((short)Integer.parseInt(Instructions.END, 16));
          
-        while(ir != (short)Integer.parseInt(Instructions.END, 16)) { //condition to only allow pc to increment till where the last instruction num sits in memory
-       
-       
-            
-            pc++;   //increment program counter
-            regStorage.setSpecialRegister(3, pc); //updating code counter everytime pc increments
+          
+         
+         while(ir != (short)Integer.parseInt(Instructions.END, 16)) { //condition to only allow pc to increment till where the last instruction num sits in memory
+        
+        
              
+             pc++;   //increment program counter
+             regStorage.setSpecialRegister(3, pc); //updating code counter everytime pc increments
               
-            
-            String irHexValue = Integer.toHexString(ir & 0xffff); // converting value in IR from int to hex
-            
-            
-            
-            getInstruction(irHexValue, pc); //this calls switch case statement and matches op code and executes instruction accordingly
+               
+             
+             String irHexValue = Integer.toHexString(ir & 0xffff); // converting value in IR from int to hex
+             
+             
+             
+             getInstruction(irHexValue, pc); //this calls switch case statement and matches op code and executes instruction accordingly
+ 
+             pc = regStorage.getSpecialRegister(3);
+             System.out.println(pc);
+             
+             ir = memory.get(pc);
+             System.out.println(ir);
 
-            pc = regStorage.getSpecialRegister(3);
-            
-            ir = memory.get(pc);
-        }
+         }
+          
          
         
       
@@ -360,6 +407,7 @@ public class VM extends OS {
         readFile();
         loadInstructionIntoMemory(codeBase);
         fetch(codeBase);
+        regStorage.toStringmeowww();
 
     }
 

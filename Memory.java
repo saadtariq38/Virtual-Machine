@@ -1,15 +1,17 @@
 public class Memory {
-    short[] memory;
+    byte[] memory;
 
     public Memory() {
-        memory = new short[65536];
+        memory = new byte[65536];
     }
 
-    public void set(int index, short value) {
-        memory[index] = value;
+    public void set(int index, Short value) {
+        memory[index] = value.byteValue();
     }
 
     public short get(int index) {
-        return memory[index];
+       
+        return (short) Byte.toUnsignedInt(memory[index]);
+       
     }
 }
