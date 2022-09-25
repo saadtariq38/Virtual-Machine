@@ -92,7 +92,7 @@ public class VM extends OS {
     public int hexToDecimal(String in) {
         //System.out.println( "inserted values " + in);
       //  System.out.println();
-      System.out.println("len="+in.length());
+      
         int x=0;
         for (int i=0;i<in.length();i++){
             if ((int)(in.charAt(i))<=57){
@@ -105,6 +105,27 @@ public class VM extends OS {
         }
         // System.out.println(Integer.parseInt(x));
         return x;
+    }
+
+    public String decimalToHex(int num) {
+        int remainder;
+        String hex = "";
+        char[] hexChar = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+        if(num == 0) {
+            return hex = "00";
+        }
+        while(num > 0) {
+            remainder = num % 16;
+            if(num / 16 == 0 && hex.equals("")) {
+                hex = "0" + hexChar[remainder] + hex;
+            } else {
+                hex = hexChar[remainder] + hex;
+            }
+
+            num = num / 16;
+        }
+
+        return hex;
     }
 
     public void getInstruction(String IrHexVal, short pc) { //Sare pc wali values ko ek ek kam increment karna bcs ek increment fucn call sai pehle ho chuka hai
@@ -143,14 +164,19 @@ public class VM extends OS {
                 MOVI(pc);
                 break;  
             case Instructions.ADDI:
+                ADDI(pc);
                 break;
             case Instructions.SUBI:
+                SUBI(pc);
                 break;
             case Instructions.MULI:
+                MULI(pc);
                 break;
             case Instructions.ANDI:
+                ANDI(pc);
                 break;
-            case Instructions.ORI:   
+            case Instructions.ORI:
+                ORI(pc);   
                 break;
             case Instructions.BZ:
                 break;
@@ -179,16 +205,22 @@ public class VM extends OS {
 
             
             case Instructions.SHL:   
+                SHL(pc);
                 break;
             case Instructions.SHR:
+                SHR(pc);
                 break;
             case Instructions.RTL:
+                RTL(pc);
                 break;
             case Instructions.RTR:
+                RTR(pc);
                 break;
             case Instructions.INC:
+                INC(pc);
                 break;
-            case Instructions.DEC:   
+            case Instructions.DEC:  
+                DEC(pc); 
                 break;
             case Instructions.PUSH:   
                 break;
@@ -199,7 +231,8 @@ public class VM extends OS {
 
             case Instructions.RETURN:   
                 break;
-            case Instructions.NOOP:   
+            case Instructions.NOOP:
+                NOOP();   
                 break;
             case Instructions.END:   
                 break;
@@ -209,82 +242,85 @@ public class VM extends OS {
     }
 
     public void MOV(short pc) {
-        short R2 = regStorage.getRegister(pc+1); //gets value from gpr at index pc+1
-        regStorage.setRegister(memory.get(pc), R2); //stores value in gpr in index pc
+        short R2 = memory.get(pc+1); //gets value from memory of the index for the gpr array. R2 is the grp index
+        regStorage.setRegister(memory.get(pc), regStorage.getRegister(R2)); //gets value from index R2 in gpr and puts it in index of R1 obtained from memory
         regStorage.setSpecialRegister(3, (short)(pc+2));
     }
 
     public void ADD(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc+1)));
         int R3 = (R1 + R2);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
+        regStorage.setRegister(memory.get(pc), (short) R3);
         regStorage.setSpecialRegister(3, (short)(pc+2));
 
     }
 
     public void SUB(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
-        int R3 = R1-R2;
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc+1)));
+        int R3 = (R1 - R2);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
+        regStorage.setRegister(memory.get(pc), (short) R3);
         regStorage.setSpecialRegister(3, (short)(pc+2));
     }
 
     public void MUL(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
-        int R3 = R1*R2;
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc+1)));
+        int R3 = (R1 * R2);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
+        regStorage.setRegister(memory.get(pc), (short) R3);
         regStorage.setSpecialRegister(3, (short)(pc+2));
     }
 
     public void DIV(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int R2 = Short.toUnsignedInt(regStorage.getRegister(pc+1));
-        int R3 = R1/R2;
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc+1)));
+        int R3 = (R1 / R2);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
+        regStorage.setRegister(memory.get(pc), (short) R3);
         regStorage.setSpecialRegister(3, (short)(pc+2));
     }
 
     public void AND(short pc) {
-        int R1 = regStorage.getRegister(pc);
-        int R2 = regStorage.getRegister(pc+1);
-        int R3 = R1 & R2;
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc+1)));
+        int R3 = (R1 & R2);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
+        regStorage.setRegister(memory.get(pc), (short) R3);
         regStorage.setSpecialRegister(3, (short)(pc+2));
     }
 
     public void OR(short pc) {
-        int R1 = regStorage.getRegister(pc);
-        int R2 = regStorage.getRegister(pc+1);
-        int R3 = R1 | R2;
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        int R2 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc+1)));
+        int R3 = (R1 | R2);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
+        regStorage.setRegister(memory.get(pc), (short) R3);
         regStorage.setSpecialRegister(3, (short)(pc+2));
     }
 
     public void MOVI(short pc) {
        
 
-        String valPat1 = Integer.toHexString(memory.get(pc+1) & 0xffff);  //getting immediate value from memory
-        String valPat2 = Integer.toHexString(memory.get(pc+2) & 0xffff);    //getting second byte of immediate val from memory
+        String valPat1 = decimalToHex(memory.get(pc+1) & 0xffff);  //getting immediate value from memory
+        String valPat2 = decimalToHex(memory.get(pc+2) & 0xffff);    //getting second byte of immediate val from memory
 
-       
+       System.out.println("part 1: " + valPat1);
+       System.out.println("part 2: " + valPat2);
         
         // int x=hexToDecimal(valPat1);
         // int y=hexToDecimal(valPat2);
         String concat = valPat1 + valPat2;
+
         concat = concat.toUpperCase();
+        System.out.println("concat: " + concat);
         
 
         int ans = hexToDecimal(concat);
-        
+        System.out.println("decimal concat: " + ans);
 
       //  String concat=((Integer)(x)).toString()+((Integer)(y)).toString();
         //System.out.println("val1="+valPa"t1+"val2="+valPat2);
@@ -297,58 +333,160 @@ public class VM extends OS {
     }
 
     public void ADDI(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int value = memory.get(pc+1);
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        String valPat1 = decimalToHex(memory.get(pc+1) & 0xffff);  //getting immediate value par 1 from memory
+        String valPat2 = decimalToHex(memory.get(pc+2) & 0xffff);  //getting immediate value par 2 from memory
+
+        String concat = valPat1 + valPat2;
+        int value = hexToDecimal(concat);
+
         int R3 = (R1 + value);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
-        regStorage.setSpecialRegister(3, (short)(pc+2));
+        regStorage.setRegister(memory.get(pc), (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+3));
     }
 
     public void SUBI(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int value = memory.get(pc+1);
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        String valPat1 = decimalToHex(memory.get(pc+1) & 0xffff);  //getting immediate value par 1 from memory
+        String valPat2 = decimalToHex(memory.get(pc+2) & 0xffff);  //getting immediate value par 2 from memory
+
+        String concat = valPat1 + valPat2;
+        int value = hexToDecimal(concat);
+
         int R3 = (R1 - value);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
-        regStorage.setSpecialRegister(3, (short)(pc+2));
+        regStorage.setRegister(memory.get(pc), (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+3));
     }
 
     public void MULI(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int value = memory.get(pc+1);
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        String valPat1 = decimalToHex(memory.get(pc+1) & 0xffff);  //getting immediate value par 1 from memory
+        String valPat2 = decimalToHex(memory.get(pc+2) & 0xffff);  //getting immediate value par 2 from memory
+
+        String concat = valPat1 + valPat2;
+        int value = hexToDecimal(concat);
+
         int R3 = (R1 * value);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
-        regStorage.setSpecialRegister(3, (short)(pc+2));
+        regStorage.setRegister(memory.get(pc), (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+3));
     }
 
     public void DIVI(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int value = memory.get(pc+1);
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        String valPat1 = decimalToHex(memory.get(pc+1) & 0xffff);  //getting immediate value par 1 from memory
+        String valPat2 = decimalToHex(memory.get(pc+2) & 0xffff);  //getting immediate value par 2 from memory
+
+        String concat = valPat1 + valPat2;
+        int value = hexToDecimal(concat);
+
         int R3 = (R1 / value);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
-        regStorage.setSpecialRegister(3, (short)(pc+2));
+        regStorage.setRegister(memory.get(pc), (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+3));
     }
 
     public void ANDI(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int value = memory.get(pc+1);
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        String valPat1 = decimalToHex(memory.get(pc+1) & 0xffff);  //getting immediate value par 1 from memory
+        String valPat2 = decimalToHex(memory.get(pc+2) & 0xffff);  //getting immediate value par 2 from memory
+
+        String concat = valPat1 + valPat2;
+        int value = hexToDecimal(concat);
+
         int R3 = (R1 & value);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
-        regStorage.setSpecialRegister(3, (short)(pc+2));
+        regStorage.setRegister(memory.get(pc), (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+3));
     }
 
     public void ORI(short pc) {
-        int R1 = Short.toUnsignedInt(regStorage.getRegister(pc));
-        int value = memory.get(pc+1);
+        int R1 = Short.toUnsignedInt(regStorage.getRegister(memory.get(pc)));
+        String valPat1 = decimalToHex(memory.get(pc+1) & 0xffff);  //getting immediate value par 1 from memory
+        String valPat2 = decimalToHex(memory.get(pc+2) & 0xffff);  //getting immediate value par 2 from memory
+
+        String concat = valPat1 + valPat2;
+        int value = hexToDecimal(concat);
+
         int R3 = (R1 | value);
         flagRegister(R3);
-        regStorage.setRegister(pc, (short) R3);
-        regStorage.setSpecialRegister(3, (short)(pc+2));
+        regStorage.setRegister(memory.get(pc), (short) R3);
+        regStorage.setSpecialRegister(3, (short)(pc+3));
     }
+
+    public void SHL(short pc) {
+        short flag = regStorage.getSpecialRegister(9); //getting flag register
+        int check1 = 32768 & regStorage.getSpecialRegister(memory.get(pc)); //getting R1 from SPR and bitwise AND with 100000000...
+        if (check1 == 32768)
+            flag = (short) (flag | 1);  //check for carry if msb is only on. this turns on carry bit
+        else
+            flag = (short) (flag & 14); //carry bit is off
+
+        short R1 = regStorage.getRegister(memory.get(pc));
+        R1 = (short) (R1 << 1);
+        flagRegister(R1);
+        regStorage.setRegister(memory.get(pc), R1);
+        regStorage.setSpecialRegister(3, (short) (pc+1));
+    }
+
+    public void SHR(short pc) {
+        short flag = regStorage.getSpecialRegister(9); //getting flag register
+        int check1 = 32768 & regStorage.getSpecialRegister(memory.get(pc)); //getting R1 from SPR and bitwise AND with 100000000...
+        if (check1 == 32768)
+            flag = (short) (flag | 1);  //check for carry if msb is only on. this turns on carry bit
+        else
+            flag = (short) (flag & 14); //carry bit is off
+
+        short R1 = regStorage.getRegister(memory.get(pc));
+        R1 = (short) (R1 >> 1);
+        flagRegister(R1);
+        regStorage.setRegister(memory.get(pc), R1);
+        regStorage.setSpecialRegister(3, (short) (pc+1));
+    }
+
+    public void RTL(short pc) {
+        short R1 = regStorage.getRegister(memory.get(pc));
+        R1 = (short) Integer.rotateLeft(Short.toUnsignedInt(R1), 1);
+        regStorage.setRegister(memory.get(pc), R1);
+        flagRegister(R1);
+        regStorage.setSpecialRegister(3, (short) (pc+1));
+    }
+
+    public void RTR(short pc) {
+        short R1 = regStorage.getRegister(memory.get(pc));
+        R1 = (short) Integer.rotateRight(Short.toUnsignedInt(R1), 1);
+        regStorage.setRegister(memory.get(pc), R1);
+        flagRegister(R1);
+        regStorage.setSpecialRegister(3, (short) (pc+1));
+    }
+
+    public void INC(short pc) {
+        short R1 = regStorage.getRegister(memory.get(pc));
+        R1++;
+        regStorage.setRegister(memory.get(pc), R1);
+        flagRegister(R1);
+        regStorage.setSpecialRegister(3, (short)(pc+1));
+    }
+
+    public void DEC(short pc) {
+        short R1 = regStorage.getRegister(memory.get(pc));
+        R1--;
+        regStorage.setRegister(memory.get(pc), R1);
+        flagRegister(R1);
+        regStorage.setSpecialRegister(3, (short)(pc+1));
+    }
+
+    public void NOOP() {
+
+    }
+
+
+
+
+
+
 
 
 
