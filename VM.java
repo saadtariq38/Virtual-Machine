@@ -179,25 +179,32 @@ public class VM extends OS {
                 ORI(pc);   
                 break;
             case Instructions.BZ:
+                BZ(pc);
                 break;
             case Instructions.BNZ:
+                BNZ(pc);
                 break;
             case Instructions.BC:
+                BC(pc);
                 break;
             case Instructions.BS:
+                BS(pc);
                 break;
-            case Instructions.JMP:   
+            case Instructions.JMP: 
+                JMP(pc);
                 break;
-            case Instructions.CALL:   
+            case Instructions.CALL:  
                 break;
             case Instructions.ACT:   
                 break;
 
             //Memory Instructions
 
-            case Instructions.MOVL:   
+            case Instructions.MOVL: 
+                MOVL(pc);  
                 break;
-            case Instructions.MOVS:   
+            case Instructions.MOVS: 
+                MOVS(pc);  
                 break;
 
             
@@ -415,6 +422,116 @@ public class VM extends OS {
         regStorage.setRegister(memory.get(pc), (short) R3);
         regStorage.setSpecialRegister(3, (short)(pc+3));
     }
+
+    public void MOVL(short pc) {
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+2)));
+        String concat = byte1 + byte2; 
+        int loc = Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1);
+
+        String part1 = decimalToHex(Short.toUnsignedInt(memory.get(loc)));
+        String part2 = decimalToHex(Short.toUnsignedInt(memory.get(loc+1)));
+        String concat2 = part1 + part2; 
+
+        int R1 = Integer.parseInt(concat2, 16);
+        regStorage.setSpecialRegister(memory.get(pc), (short) R1);
+        flagRegister(R1);
+        regStorage.setSpecialRegister(3, (short)(pc+3));
+
+    }
+
+    public void MOVS(short pc) {
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+2)));
+        String concat = byte1 + byte2; 
+        int loc = Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1);
+
+        byte first8Bits = (byte) (regStorage.getRegister(memory.get(pc)) >> 8);
+        byte last8Bits = (byte) (regStorage.getRegister(memory.get(pc)));
+
+        memory.set(loc, (short) first8Bits);
+        memory.set(loc+1, (short) last8Bits); 
+
+        regStorage.setSpecialRegister(3, (short)(pc+3));
+    }
+    public void BZ(short pc) {
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc)));
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
+        String concat = byte1 + byte2;          // the check for branch happens on 2 immediate bytes from memory hence concat
+
+        short flag = regStorage.getSpecialRegister(9);
+
+        int check = flag & 2;
+        if (check == 2)
+            //adding value of codebase to int value of concatenated hex string
+            regStorage.setSpecialRegister(3, (short) ((short) Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1))); 
+        else
+            regStorage.setSpecialRegister(3, (short) (pc + 2));
+
+    }
+
+    public void BNZ(short pc) {
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc)));
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
+        String concat = byte1 + byte2;          // the check for branch happens on 2 immediate bytes from memory hence concat
+
+        short flag = regStorage.getSpecialRegister(9);
+
+        int check = flag & 2;    //flag zero bit check
+        if (check == 2)
+            
+            regStorage.setSpecialRegister(3, (short) (pc + 2));
+        else
+            //adding value of codebase to int value of concatenated hex string
+            regStorage.setSpecialRegister(3, (short) ((short) Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1)));
+            
+
+    }
+
+    public void BC(short pc) {
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc)));
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
+        String concat = byte1 + byte2;          // the check for branch happens on 2 immediate bytes from memory hence concat
+
+        short flag = regStorage.getSpecialRegister(9);
+
+        int check = flag & 1;
+        if (check == 1)
+            //adding value of codebase to int value of concatenated hex string
+            regStorage.setSpecialRegister(3, (short) ((short) Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1))); 
+        else
+            regStorage.setSpecialRegister(3, (short) (pc + 2));
+
+    }
+
+
+    public void BS(short pc) {
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc)));
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
+        String concat = byte1 + byte2;          // the check for branch happens on 2 immediate bytes from memory hence concat
+
+        short flag = regStorage.getSpecialRegister(9);
+
+        int check = flag & 4;
+        if (check == 4)
+            //adding value of codebase to int value of concatenated hex string
+            regStorage.setSpecialRegister(3, (short) ((short) Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1))); 
+        else
+            regStorage.setSpecialRegister(3, (short) (pc + 2));
+
+    }
+
+    public void JMP(short pc) {
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc)));
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
+        String concat = byte1 + byte2;          // the check for branch happens on 2 immediate bytes from memory hence concat
+
+            //adding value of codebase to int value of concatenated hex string
+        regStorage.setSpecialRegister(3, (short) ((short) Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1))); 
+        
+
+    }
+
 
     public void SHL(short pc) {
         short flag = regStorage.getSpecialRegister(9); //getting flag register
