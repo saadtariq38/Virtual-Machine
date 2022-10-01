@@ -35,7 +35,7 @@ public class VM extends OS {
             
             instructions = new short[fileData.length];
               for(int i = 0; i < fileData.length;i++) {
-                instructions[i] = (short)Integer.parseInt(fileData[i], 16);
+                instructions[i] = (short)Integer.parseInt(fileData[i], 16); //hexa to int then to short
                 
                 
               }
@@ -74,7 +74,7 @@ public class VM extends OS {
 
 
 
-        if (num > 32767 && num < 65536) {
+        if (num > 32767 && num < 65536) { //msb is on
             flag = (short) (flag | 4); //update flag sign bit to 1
         } else {
             flag = (short) (flag & 11); //update flag sign bit to 0
@@ -95,7 +95,7 @@ public class VM extends OS {
       
         int x=0;
         for (int i=0;i<in.length();i++){
-            if ((int)(in.charAt(i))<=57){
+            if ((int)(in.charAt(i))<=57){ // <= 9
                 x=x+((int)(in.charAt(i))-48)*(int)Math.pow(16,(in.length()-i-1));
             }
             else {
@@ -441,13 +441,13 @@ public class VM extends OS {
     }
 
     public void MOVS(short pc) {
-        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1)));
-        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+2)));
+        String byte1 = decimalToHex(Short.toUnsignedInt(memory.get(pc+1))); //getting immediate operand 1
+        String byte2 = decimalToHex(Short.toUnsignedInt(memory.get(pc+2))); //getting immediate operand 2
         String concat = byte1 + byte2; 
-        int loc = Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1);
+        int loc = Integer.parseInt(concat, 16) + regStorage.getSpecialRegister(1); //adding with code base val
 
-        byte first8Bits = (byte) (regStorage.getRegister(memory.get(pc)) >> 8);
-        byte last8Bits = (byte) (regStorage.getRegister(memory.get(pc)));
+        byte first8Bits = (byte) (regStorage.getRegister(memory.get(pc)) >> 8); //splitting 16 bits to 8 
+        byte last8Bits = (byte) (regStorage.getRegister(memory.get(pc)));   //bcs memory needs 2 cells to store 16 bit num
 
         memory.set(loc, (short) first8Bits);
         memory.set(loc+1, (short) last8Bits); 
@@ -460,6 +460,9 @@ public class VM extends OS {
         String concat = byte1 + byte2;          // the check for branch happens on 2 immediate bytes from memory hence concat
 
         short flag = regStorage.getSpecialRegister(9);
+
+
+        // checking zero bit 
 
         int check = flag & 2;
         if (check == 2)
@@ -495,6 +498,7 @@ public class VM extends OS {
 
         short flag = regStorage.getSpecialRegister(9);
 
+        //carry bit check
         int check = flag & 1;
         if (check == 1)
             //adding value of codebase to int value of concatenated hex string
@@ -534,13 +538,14 @@ public class VM extends OS {
 
 
     public void SHL(short pc) {
-        short flag = regStorage.getSpecialRegister(9); //getting flag register
-        int check1 = 32768 & regStorage.getSpecialRegister(memory.get(pc)); //getting R1 from SPR and bitwise AND with 100000000...
+       // short flag = regStorage.getSpecialRegister(9); //getting flag register
+       // int check1 = 32768 & regStorage.getSpecialRegister(memory.get(pc)); //getting R1 from SPR and bitwise AND with 100000000...
+        /* 
         if (check1 == 32768)
             flag = (short) (flag | 1);  //check for carry if msb is only on. this turns on carry bit
         else
             flag = (short) (flag & 14); //carry bit is off
-
+        */
         short R1 = regStorage.getRegister(memory.get(pc));
         R1 = (short) (R1 << 1);
         flagRegister(R1);
@@ -549,19 +554,45 @@ public class VM extends OS {
     }
 
     public void SHR(short pc) {
-        short flag = regStorage.getSpecialRegister(9); //getting flag register
-        int check1 = 32768 & regStorage.getSpecialRegister(memory.get(pc)); //getting R1 from SPR and bitwise AND with 100000000...
+       // short flag = regStorage.getSpecialRegister(9); //getting flag register
+       // int check1 = 32768 & regStorage.getSpecialRegister(memory.get(pc)); //getting R1 from SPR and bitwise AND with 100000000...
+       /* 
         if (check1 == 32768)
             flag = (short) (flag | 1);  //check for carry if msb is only on. this turns on carry bit
         else
             flag = (short) (flag & 14); //carry bit is off
-
+        */
         short R1 = regStorage.getRegister(memory.get(pc));
         R1 = (short) (R1 >> 1);
         flagRegister(R1);
         regStorage.setRegister(memory.get(pc), R1);
         regStorage.setSpecialRegister(3, (short) (pc+1));
     }
+
+    public void RTL(short pc){
+
+        short first=regStorage.getRegister(Short.toUnsignedInt(memory.get(pc)));
+        short second = (short)((int)(first) << 1);
+        
+        short temp = (short)(first & -32768); //msb ko high ya off karraha hun
+        temp = (short)(temp / -32768); //1 if msb in high 0 when msb is not high
+        second = (short)(second | temp); // right most bit ko 1 kardia
+        first = second;
+        
+        regStorage.setRegister(Short.toUnsignedInt(memory.get(pc)), first);
+
+        if (temp==1){
+            regStorage.setSpecialRegister(9, (short)(regStorage.getSpecialRegister(9) | 1));
+        }
+        else{
+            
+            regStorage.setSpecialRegister(9, (short)(regStorage.getSpecialRegister(9) & 15));
+        }
+
+        flagRegister(first);
+    }
+
+    /* 
 
     public void RTL(short pc) {
         short R1 = regStorage.getRegister(memory.get(pc));
@@ -571,13 +602,34 @@ public class VM extends OS {
         regStorage.setSpecialRegister(3, (short) (pc+1));
     }
 
-    public void RTR(short pc) {
-        short R1 = regStorage.getRegister(memory.get(pc));
-        R1 = (short) Integer.rotateRight(Short.toUnsignedInt(R1), 1);
-        regStorage.setRegister(memory.get(pc), R1);
-        flagRegister(R1);
-        regStorage.setSpecialRegister(3, (short) (pc+1));
+    */
+
+    public void RTR(short pc){
+       
+        short first=regStorage.getRegister(Short.toUnsignedInt(memory.get(pc)));
+        short second = (short)((int)(first) >> 1);
+
+        short temp=(short)(first & 1);
+    
+        temp=(short)(((short)(temp *(-32768)))); //lsb ko msb bana rahe hain
+
+        second =(short)(second & 32767); //0111 1111 1111 1111
+        second=(short)(second | temp);  //0000 0000 0000 0000
+        first = second;
+        
+       
+        regStorage.setRegister(Short.toUnsignedInt(memory.get(pc)), first);
+
+        if (temp== -32768){
+            
+            regStorage.setSpecialRegister(9, (short)(regStorage.getSpecialRegister(9) | 1));
+        }
+        else{
+            regStorage.setSpecialRegister(9, (short)(regStorage.getSpecialRegister(9) & 15));
+        }
+        flagRegister(first);
     }
+
 
     public void INC(short pc) {
         short R1 = regStorage.getRegister(memory.get(pc));
@@ -623,7 +675,7 @@ public class VM extends OS {
         ir = memory.get(pc);    //get value from memory into instruction register
         System.out.println(ir);
         
-        System.out.println((short)Integer.parseInt(Instructions.END, 16));
+        
          
           
          
@@ -631,7 +683,7 @@ public class VM extends OS {
         
         
              
-             pc++;   //increment program counter
+             pc++;   //increment program counter sitting on R1 not opcode
              regStorage.setSpecialRegister(3, pc); //updating code counter everytime pc increments
               
                
