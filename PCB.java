@@ -11,7 +11,10 @@ public class PCB extends OS{
     double waitTime;
     int codeCounter;
 
-    int[] pageTable = new int[512]; //512 size bcs 65536 total memory size divided by 128 which is the size of one frame i.e total frames are 512
+   // int[] codePageTable = new int[512]; //512 size bcs 65536 total memory size divided by 128 which is the size of one frame i.e total frames are 512
+    //int[] dataPageTable = new int[512];
+    int[] pageTable = new int[512]; //common page table for data and code
+
 
     public PCB(Long priority,Long id,int processsize,int datasize,String name) {
         this.processPriority = priority;

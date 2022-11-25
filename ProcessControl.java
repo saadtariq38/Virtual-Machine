@@ -1,12 +1,19 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.*;
 
 
 public class ProcessControl extends OS{
 
-    public ProcessControl() {
 
+    String [] hexarr;
+    ReadyQueue rq = new ReadyQueue();
+    Queue<PCB> FCFSQueue = rq.getFCFSQueue();
+    PriorityQueue<PCB> pQueue = rq.getPriorityQueue();
+
+    public ProcessControl() {
+        
     }
     
 
@@ -22,11 +29,7 @@ public class ProcessControl extends OS{
 
         for (int j = 0; j < 6;j++) {  //THIS LOOP READS EACH FILEPATH, CONVERTS FILE TO HEX VAULES AND PARSES ALL THE NEEDED VALUES AND INSERTS INTO MEMORY VIA PAGING AND CREATES PCBS AND ADDS THEM INTO READYQUEUE
             byte[] content = Files.readAllBytes(Paths.get(filename[j]));
-            for (int i = 0; i < content.length; i++) {
-                
-                
-            }
-            String [] hexarr = new String[content.length];
+            hexarr = new String[content.length];
             for (int s = 0; s < content.length; s++) {        //converting bytes read from binary file into hex values
                 hexarr[s]=Integer.toHexString(content[s]);
                
@@ -52,17 +55,64 @@ public class ProcessControl extends OS{
             System.out.println("Process size: "+processSize);
             int codeSize = processSize - dataSize - 8;
             System.out.println("Code size: "+codeSize);
-            PCB pcb = new PCB((long)processPriority,(long)processID,processSize,dataSize,name);
 
+
+            PCB pcb = new PCB((long)processPriority,(long)processID,processSize,dataSize,name);
+            if (pcb.processPriority < 16 && pcb.processPriority >= 0){
+                pQueue.add(pcb);
+            } else if(pcb.processPriority >= 16 && pcb.processPriority < 32){
+                FCFSQueue.add(pcb);
+            }
+
+            loadIntoMem(pcb);
+            memory.printMem();
+
+            System.out.println("IDFHGDGIDLIGLHIDFBHIFBIFIBIFBIFBHFGAFHGLAHFGHFGFGAKFHG");           //line break pls dont judge thankyou
+             
             /*
              
-            */
             for(int k = 0; k < hexarr.length;k++) {
                 System.out.println(hexarr[k]);
             }
+             */
+            
         }
         
     }
+
+    public void loadIntoMem(PCB pcb) {
+        String s = "";
+        int k = 0;
+	       	   int pagenum = 0;
+	       	   if (pcb.getProcessSize() > 128) { //LOADS INTO MEMORY VIA PAGING
+	       		   
+	       		    for (int i = 8; i < pcb.getProcessSize(); i++) {
+	       		    	 s = s+hexarr[i]+" ";
+	       		    	 k++;
+		       		     if (k == 128 || i == pcb.getProcessSize()-1) {
+                            int  firstfreeIndex = memory.findFirstFreeFrameIndex();
+                            memory.loadDataIntoFrame(firstfreeIndex, s, memory);
+                            pcb.pageTable[pagenum] = firstfreeIndex;
+                            System.out.println("page table index " + pagenum + "has value " + firstfreeIndex);
+		       		          // mem.loadIntoFrameNumber(pcb.returnPageTables()[pagenum],s);
+		       		           pagenum++;
+		       		           s = "";
+		       		           k = 0;
+		       	         }
+		       	    }
+	       	   } else {
+	       		    for (int i = 8; i < pcb.getProcessSize(); i++) {
+		                s = s+hexarr[i]+" ";
+		             }
+                    int  firstfreeIndex = memory.findFirstFreeFrameIndex();
+                    memory.loadDataIntoFrame(firstfreeIndex, s, memory);
+		       }
+    }
+
+
+
+
+
 
 
     
