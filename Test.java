@@ -14,8 +14,14 @@ public class Test{
              */
       ProcessControl obj = new ProcessControl();
       obj.convertAndReadBinProcessFiles();
-             
-        
+          
+     /*
+     byte[] arr = new byte[5];
+     for(int i =0; i < 5;i++) {
+       System.out.println(arr[i]);
+     }
+      
+      */
        // VM vm = new VM("p0.txt", (short) 0);
       //  vm.cpu();
         

@@ -12,6 +12,7 @@ public class ProcessControl extends OS{
     Queue<PCB> FCFSQueue = rq.getFCFSQueue();
     PriorityQueue<PCB> pQueue = rq.getPriorityQueue();
 
+    
     public ProcessControl() {
         
     }
@@ -58,13 +59,15 @@ public class ProcessControl extends OS{
 
 
             PCB pcb = new PCB((long)processPriority,(long)processID,processSize,dataSize,name);
-            if (pcb.processPriority < 16 && pcb.processPriority >= 0){
+            if (pcb.processPriority < 16 && pcb.processPriority >= 0){      //condition to add process to priority queue
                 pQueue.add(pcb);
-            } else if(pcb.processPriority >= 16 && pcb.processPriority < 32){
+            } else if(pcb.processPriority >= 16 && pcb.processPriority < 32){   //condition to add process to FCFS queue
                 FCFSQueue.add(pcb);
             }
 
             loadIntoMem(pcb);
+
+
             memory.printMem();
 
             System.out.println("IDFHGDGIDLIGLHIDFBHIFBIFIBIFBIFBHFGAFHGLAHFGHFGFGAKFHG");           //line break pls dont judge thankyou
@@ -80,7 +83,7 @@ public class ProcessControl extends OS{
         
     }
 
-    public void loadIntoMem(PCB pcb) {
+    public void loadIntoMem(PCB pcb) {// this is called inside convertAndReadBinProcessFiles() function
         String s = "";
         int k = 0;
 	       	   int pagenum = 0;
@@ -110,6 +113,50 @@ public class ProcessControl extends OS{
     }
 
 
+    public int getFrameNum(PCB pcb, int pageNum) {      //get the frame number from the page table
+        return pcb.pageTable[pageNum];
+    }
+
+    public int getFrameBaseIndex(int frameNum) {        //uses frame num to calculate the starting index of that particular frame to add the offset to
+        return frameNum * 128;
+    }
+
+    public void loadOneFrameToVirtualMemory(int frameBase, int vmStartingIndex) {
+        for(int i=vmStartingIndex; i < vmStartingIndex + 128 ;i++) {
+            memory.VirtualSet(i, memory.get(frameBase));    //gets data from physical memory and stores it i virtual memory
+            frameBase++;        // this increments the physical memory index whereas i is the virtual memory index.
+                                //all oof the frames 128 bytes are stored in the virtual memory.
+        }
+    }
+
+    public void StoreAllFramesInVirtualMemory(PCB pcb) {        // stores all frames from physcial memory to the virtual memory
+        int startingPos = 0;                                    // saves starting position for the next frame and starts saving fro there.
+        int i = 0;
+        while(pcb.pageTable[i] != 0) {                              //for each page num i.e each frame of that process
+            int frameNum = getFrameNum(pcb, i);                     //get frame num
+            int frameIndex = getFrameBaseIndex(frameNum);           //get starting index of that frame in physical memory
+            loadOneFrameToVirtualMemory(frameIndex, startingPos);   //gets frame into virtual memory using starting pos in vm for that frame
+                                                                    //and uses frame index to get data from physical memory.
+            startingPos+=128;
+            
+        }
+    }
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -133,3 +180,10 @@ public class ProcessControl extends OS{
     
     
 
+
+
+
+
+
+
+//YAMETE KURASAI - isra nadeem.
