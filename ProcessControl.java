@@ -66,9 +66,11 @@ public class ProcessControl extends OS{
             }
 
             loadIntoMem(pcb);
-
+            
 
             memory.printMem();
+            memory.printVirtualMem();
+            
 
             System.out.println("IDFHGDGIDLIGLHIDFBHIFBIFIBIFBIFBHFGAFHGLAHFGHFGFGAKFHG");           //line break pls dont judge thankyou
              
@@ -80,6 +82,11 @@ public class ProcessControl extends OS{
              */
             
         }
+        
+        
+    }
+
+    public void addToQueues() {
         
     }
 
@@ -96,7 +103,7 @@ public class ProcessControl extends OS{
                             int  firstfreeIndex = memory.findFirstFreeFrameIndex();
                             memory.loadDataIntoFrame(firstfreeIndex, s, memory);
                             pcb.pageTable[pagenum] = firstfreeIndex;
-                            System.out.println("page table index " + pagenum + "has value " + firstfreeIndex);
+                            System.out.println("page table index " + pagenum + " has value " + firstfreeIndex);
 		       		          // mem.loadIntoFrameNumber(pcb.returnPageTables()[pagenum],s);
 		       		           pagenum++;
 		       		           s = "";
@@ -132,12 +139,16 @@ public class ProcessControl extends OS{
     public void StoreAllFramesInVirtualMemory(PCB pcb) {        // stores all frames from physcial memory to the virtual memory
         int startingPos = 0;                                    // saves starting position for the next frame and starts saving fro there.
         int i = 0;
-        while(pcb.pageTable[i] != 0) {                              //for each page num i.e each frame of that process
-            int frameNum = getFrameNum(pcb, i);                     //get frame num
-            int frameIndex = getFrameBaseIndex(frameNum);           //get starting index of that frame in physical memory
+        while(i < 9) {           
+            System.out.println("i is : " + i);                   //for each page num i.e each frame of that process
+            int frameNum = getFrameNum(pcb, i);    
+            System.out.println("frame num: " + frameNum);                 //get frame num
+            int frameIndex = getFrameBaseIndex(frameNum);  
+            System.out.println("frame index: "  + frameIndex);         //get starting index of that frame in physical memory
             loadOneFrameToVirtualMemory(frameIndex, startingPos);   //gets frame into virtual memory using starting pos in vm for that frame
                                                                     //and uses frame index to get data from physical memory.
             startingPos+=128;
+            i++;
             
         }
     }
@@ -186,4 +197,3 @@ public class ProcessControl extends OS{
 
 
 
-//YAMETE KURASAI - isra nadeem.

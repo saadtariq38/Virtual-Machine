@@ -62,6 +62,12 @@ public class Memory {
         }
     }
 
+    public void printVirtualMem() {
+        for (int i =0; i < 100;i++) {
+            System.out.println(Byte.toUnsignedInt(virtualMemory[i]));
+        }
+    }
+
     public void printMem() {
         for (int i =0; i < 100;i++) {
             System.out.println(Byte.toUnsignedInt(memory[i]));
