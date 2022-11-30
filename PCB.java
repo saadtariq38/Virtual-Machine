@@ -10,6 +10,7 @@ public class PCB extends OS{
     double execTime;
     double waitTime;
     int codeCounter;
+   
 
    // int[] codePageTable = new int[512]; //512 size bcs 65536 total memory size divided by 128 which is the size of one frame i.e total frames are 512
     //int[] dataPageTable = new int[512];
@@ -22,6 +23,7 @@ public class PCB extends OS{
     	this.processFileName = name;
     	this.processSize = processsize;
     	this.dataSize = datasize;
+        
     	codeCounter= 0;
     	 
     	processState = "Ready";
@@ -43,6 +45,7 @@ public class PCB extends OS{
     public int getCodeCounter() {
         return codeCounter;
     }
+   
     public String getProcessState() {
         return processState;
     }

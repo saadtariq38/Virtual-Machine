@@ -8,9 +8,9 @@ public class ProcessControl extends OS{
 
 
     String [] hexarr;
-    ReadyQueue rq = new ReadyQueue();
-    Queue<PCB> FCFSQueue = rq.getFCFSQueue();
-    PriorityQueue<PCB> pQueue = rq.getPriorityQueue();
+    int pageCount;
+    Queue<PCB> FCFSQueue = queues.getFCFSQueue();       //the queues are declared in the OS class since they are common to all processes
+    PriorityQueue<PCB> pQueue = queues.getPriorityQueue();  //same goes for this
 
     
     public ProcessControl() {
@@ -65,11 +65,10 @@ public class ProcessControl extends OS{
                 FCFSQueue.add(pcb);
             }
 
-            loadIntoMem(pcb);
+            loadIntoMem(pcb); 
             
-
             memory.printMem();
-            memory.printVirtualMem();
+           // memory.printVirtualMem();
             
 
             System.out.println("IDFHGDGIDLIGLHIDFBHIFBIFIBIFBIFBHFGAFHGLAHFGHFGFGAKFHG");           //line break pls dont judge thankyou
@@ -86,9 +85,6 @@ public class ProcessControl extends OS{
         
     }
 
-    public void addToQueues() {
-        
-    }
 
     public void loadIntoMem(PCB pcb) {// this is called inside convertAndReadBinProcessFiles() function
         String s = "";
@@ -110,6 +106,7 @@ public class ProcessControl extends OS{
 		       		           k = 0;
 		       	         }
 		       	    }
+                    pageCount = pagenum + 1;        //saves the number of pages used out of 512 to help when reading thm later
 	       	   } else {
 	       		    for (int i = 8; i < pcb.getProcessSize(); i++) {
 		                s = s+hexarr[i]+" ";
@@ -129,6 +126,7 @@ public class ProcessControl extends OS{
     }
 
     public void loadOneFrameToVirtualMemory(int frameBase, int vmStartingIndex) {
+        System.out.println("vm starting index " + vmStartingIndex);
         for(int i=vmStartingIndex; i < vmStartingIndex + 128 ;i++) {
             memory.VirtualSet(i, memory.get(frameBase));    //gets data from physical memory and stores it i virtual memory
             frameBase++;        // this increments the physical memory index whereas i is the virtual memory index.
@@ -136,10 +134,10 @@ public class ProcessControl extends OS{
         }
     }
 
-    public void StoreAllFramesInVirtualMemory(PCB pcb) {        // stores all frames from physcial memory to the virtual memory
+    public void StoreAllFramesInVirtualMemory(PCB pcb, int pageCount) {        // stores all frames from physcial memory to the virtual memory
         int startingPos = 0;                                    // saves starting position for the next frame and starts saving fro there.
         int i = 0;
-        while(i < 9) {           
+        while(i < pageCount) {           
             System.out.println("i is : " + i);                   //for each page num i.e each frame of that process
             int frameNum = getFrameNum(pcb, i);    
             System.out.println("frame num: " + frameNum);                 //get frame num

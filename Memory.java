@@ -56,7 +56,7 @@ public class Memory {
        
     }
 
-    public void clearMem() {
+    public void clearVirtualMem() {
         for (int i = 0; i < virtualMemory.length;i++) {
             virtualMemory[i] = 0;
         }

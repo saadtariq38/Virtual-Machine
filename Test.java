@@ -14,6 +14,8 @@ public class Test{
              */
       ProcessControl obj = new ProcessControl();
       obj.convertAndReadBinProcessFiles();
+      CPU cpu = new CPU();
+      cpu.exec();
           
      /*
      byte[] arr = new byte[5];
